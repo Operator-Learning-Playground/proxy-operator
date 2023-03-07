@@ -1,0 +1,21 @@
+apiVersion: api.practice.com/v1alpha1
+kind: Proxy
+metadata:
+  name: myproxy
+spec:
+  server:
+    ip: localhost
+    port: 8000
+  rules:
+    - path:
+        backend:
+          prefix: /test1
+          url: localhost:8000
+    - path:
+        backend:
+          prefix: /test2
+          url: localhost:8080
+    - path:
+        backend:
+          prefix: /test3
+          url: localhost:8888
