@@ -3,8 +3,10 @@ package sysconfig
 import (
 	"fmt"
 	"io/ioutil"
+	"k8s.io/klog/v2"
 	"net/http/httputil"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 
@@ -35,17 +37,19 @@ func InitConfig() error {
 var (
 	ProxyMap = make(map[string]*httputil.ReverseProxy)
 	HostMap  = make(map[string]string)
+	InitProxyMap = make(map[string]*httputil.ReverseProxy)
 )
 
 func ParseRule() {
 
 	for _, rule := range SysConfig1.Rules {
-		fmt.Printf("http://%s\n", rule.Path.Backend.Url)
-		res, _ := NewProxy(fmt.Sprintf("http://%s", rule.Path.Backend.Url))
+		splitUrl := strings.Split(rule.Path.Backend.Url, "://")
+		fmt.Printf("%s://%s\n", splitUrl[0], splitUrl[1])
+		res, _ := NewProxy(fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1]))
 		ProxyMap[rule.Path.Backend.Prefix] = res
-		HostMap[rule.Path.Backend.Prefix] = fmt.Sprintf("http://%s", rule.Path.Backend.Url)
-		fmt.Println(rule.Path.Backend.Prefix, HostMap[rule.Path.Backend.Prefix])
-
+		HostMap[rule.Path.Backend.Prefix] = fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1])
+		InitProxyMap[fmt.Sprintf("%s", splitUrl[1])] = res
+		klog.Info(rule.Path.Backend.Prefix, HostMap[rule.Path.Backend.Prefix])
 	}
 
 }
