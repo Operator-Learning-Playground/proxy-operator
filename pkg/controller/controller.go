@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	proxyv1alpha1 "github.com/myoperator/proxyoperator/pkg/apis/proxy/v1alpha1"
+	"github.com/myoperator/proxyoperator/pkg/sysconfig"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -33,10 +34,10 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	}
 	klog.Info(proxy)
 
-	//err = sysconfig.AppConfig(proxy)
-	//if err != nil {
-	//	return reconcile.Result{}, nil
-	//}
+	err = sysconfig.AppConfig(proxy)
+	if err != nil {
+		return reconcile.Result{}, nil
+	}
 
 	return reconcile.Result{}, nil
 }
@@ -47,5 +48,5 @@ func(r *ProxyController) InjectClient(c client.Client) error {
 	return nil
 }
 
-
+// TODO: 删除逻辑并未处理
 
