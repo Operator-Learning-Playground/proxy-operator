@@ -77,7 +77,7 @@ type Server struct {
 	Port int 	`yaml:"port"`
 }
 
-//func AppConfig(ingress *networkingv1.Ingress) error {
+//func AppConfig(proxy *proxyv1alpha1.Proxy) error {
 //	isEdit := false
 //
 //	// 更新内存的配置

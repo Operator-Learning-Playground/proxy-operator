@@ -2,15 +2,19 @@ package main
 
 import (
 	"fmt"
+	proxyv1alpha1 "github.com/myoperator/proxyoperator/pkg/apis/proxy/v1alpha1"
 	"github.com/myoperator/proxyoperator/pkg/controller"
 	"github.com/myoperator/proxyoperator/pkg/k8sconfig"
 	"github.com/myoperator/proxyoperator/pkg/sysconfig"
-	networkingv1 "k8s.io/api/networking/v1"
+	_ "k8s.io/code-generator"
 	"k8s.io/klog/v2"
 	"log"
+
 	"net/http"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
@@ -26,31 +30,29 @@ import (
 
 func main() {
 
+	logf.SetLogger(zap.New())
 	// 1. 管理器初始化
-	mgr, err := manager.New(k8sconfig.K8sRestConfig(), manager.Options{})
-	if err  != nil {
-		klog.Error(err, "unable to set up manager")
+	mgr, err := manager.New(k8sconfig.K8sRestConfig(), manager.Options{
+		Logger:  logf.Log.WithName("proxy-operator"),
+	})
+	if err != nil {
+		mgr.GetLogger().Error(err, "unable to set up manager")
 		os.Exit(1)
 	}
 
-	// 2. 控制器相关
-	//proxyCtl := controller.NewProxyController()
-	// 传入资源&v1.Ingress{}，也可以用crd
-	err = builder.ControllerManagedBy(mgr).
-		For(&networkingv1.Ingress{}).
-		//Watches(&source.Kind{ // 加入监听。
-		//	Type: &networkingv1.Ingress{},
-		//}, handler.Funcs{
-		//	DeleteFunc: proxyCtl.IngressDeleteHandler,
-		//}).
-		Complete(controller.NewProxyController())
-
-	// 3. ++ 注册进入序列化表
-	err = k8sconfig.SchemeBuilder.AddToScheme(mgr.GetScheme())
+	// 2. ++ 注册进入序列化表
+	err = proxyv1alpha1.SchemeBuilder.AddToScheme(mgr.GetScheme())
 	if err != nil {
 		klog.Error(err, "unable add schema")
 		os.Exit(1)
 	}
+
+	// 3. 控制器相关
+	proxyCtl := controller.NewProxyController()
+
+	err = builder.ControllerManagedBy(mgr).
+		For(&proxyv1alpha1.Proxy{}).
+		Complete(proxyCtl)
 
 	// 4. 载入业务配置
 	if err = sysconfig.InitConfig(); err != nil {
@@ -59,7 +61,7 @@ func main() {
 	}
 	errC := make(chan error)
 
-	// 3. 启动controller管理器
+	// 5. 启动controller管理器
 	go func() {
 		klog.Info("controller start!! ")
 		if err = mgr.Start(signals.SetupSignalHandler()); err != nil {
@@ -67,7 +69,7 @@ func main() {
 		}
 	}()
 
-	// 4. 启动网关
+	// 6. 启动网关
 	go func() {
 		klog.Info("proxy start!! ")
 		http.HandleFunc("/", sysconfig.ProxyRequestHandler(sysconfig.ProxyMap))
