@@ -1,6 +1,6 @@
 package v1alpha1
+
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,8 +16,28 @@ type Proxy struct {
 	Spec ProxySpec `json:"spec,omitempty"`
 }
 
+type Rules struct {
+	Path Path `json:"path"`
+}
+
+type Path struct {
+	Backend Backend `json:"backend"`
+}
+
+type Backend struct {
+	Prefix string `json:"prefix"`
+	Url    string `json:"url"`
+}
+
+type Server struct {
+	Ip   string `json:"ip"`
+	Port int 	`json:"port"`
+}
+
+
 type ProxySpec struct {
-	 Steps []TaskStep `json:"steps,omitempty"`
+	Rules  []Rules `json:"rules"`
+	Server Server  `json:"server"`
 }
 
 
