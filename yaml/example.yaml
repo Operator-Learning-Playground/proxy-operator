@@ -5,17 +5,21 @@ metadata:
 spec:
   server:
     ip: localhost
-    port: 8000
+    port: 10086
   rules:
     - path:
         backend:
           prefix: /test1
-          url: localhost:8000
+          url: http://localhost:8899 # 真正要访问的服务
+    - path:
+        backend:
+          prefix: /aaaa
+          url: http://172.20.10.4:12308 # 真正要访问的服务
+    - path:
+        backend:
+          prefix: /bbbb
+          url: http://localhost:8888 # 真正要访问的服务
     - path:
         backend:
           prefix: /test2
-          url: localhost:8080
-    - path:
-        backend:
-          prefix: /test3
-          url: localhost:8888
+          url: http://172.20.10.4:8000 # 真正要访问的服务

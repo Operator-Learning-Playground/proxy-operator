@@ -1,20 +1,16 @@
-server:
-  ip: localhost
-  port: 10086
-rules:
-  - path:
-      backend:
-        prefix: /test1
-        url: http://localhost:8899 # 真正要访问的服务
-  - path:
-      backend:
-        prefix: /aaaa
-        url: http://172.20.10.4:12308 # 真正要访问的服务
-  - path:
-      backend:
-        prefix: /bbbb
-        url: http://localhost:8888 # 真正要访问的服务
-  - path:
-      backend:
-        prefix: /test2
-        url: http://172.20.10.4:8000 # 真正要访问的服务
+Rules:
+- Path:
+    Backend:
+      Prefix: /test1
+      Url: http://localhost:8899
+- Path:
+    Backend:
+      Prefix: /tttt
+      Url: https://github.com
+- Path:
+    Backend:
+      Prefix: /aaaa
+      Url: https://www.jtthink.com
+Server:
+  Ip: localhost
+  Port: 10086
