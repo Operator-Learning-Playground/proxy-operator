@@ -52,7 +52,7 @@ func ParseRule() {
 		ProxyMap[rule.Path.Backend.Prefix] = res
 		HostMap[rule.Path.Backend.Prefix] = fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1])
 		InitProxyMap[fmt.Sprintf("%s", splitUrl[1])] = res
-		klog.Info(rule.Path.Backend.Prefix, HostMap[rule.Path.Backend.Prefix])
+		klog.Info(rule.Path.Backend.Prefix, " ", HostMap[rule.Path.Backend.Prefix])
 	}
 
 }
@@ -97,40 +97,18 @@ func AppConfig(proxy *proxyv1alpha1.Proxy) error {
 		SysConfig1.Rules[i].Path.Backend.Prefix = proxyPath.Path.Backend.Prefix
 
 	}
-	//
+	// 保存配置文件
 	if err := saveConfigToFile(); err != nil {
 		return err
 	}
-
 
 	return ReloadConfig()
 }
 
 // ReloadConfig 重载配置
 func ReloadConfig() error {
-
 	return InitConfig()
-
 }
-
-//func DeleteConfig(name, namespace string) error {
-//	isEdit := false
-//	for i, config := range SysConfig.Ingress {
-//		if config.Name == name && config.Namespace == namespace {
-//			SysConfig.Ingress = append(SysConfig.Ingress[:i], )
-//			isEdit = true
-//			break
-//		}
-//	}
-//	if isEdit {
-//		if err := saveConfigToFile(); err != nil {
-//			return err
-//		}
-//		return ReloadConfig()
-//	}
-//
-//	return nil
-//}
 
 //saveConfigToFile 把config配置放入文件中
 func saveConfigToFile() error {
