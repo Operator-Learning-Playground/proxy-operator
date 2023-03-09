@@ -24,7 +24,7 @@ func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-//
+// LimiterMiddleware 限流中间件
 func LimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ip := req.RemoteAddr
