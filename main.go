@@ -5,6 +5,7 @@ import (
 	proxyv1alpha1 "github.com/myoperator/proxyoperator/pkg/apis/proxy/v1alpha1"
 	"github.com/myoperator/proxyoperator/pkg/controller"
 	"github.com/myoperator/proxyoperator/pkg/k8sconfig"
+	"github.com/myoperator/proxyoperator/pkg/middleware"
 	"github.com/myoperator/proxyoperator/pkg/sysconfig"
 	_ "k8s.io/code-generator"
 	"k8s.io/klog/v2"
@@ -72,7 +73,7 @@ func main() {
 	// 6. 启动网关
 	go func() {
 		klog.Info("proxy start!! ")
-		http.HandleFunc("/", sysconfig.ProxyRequestHandler(sysconfig.ProxyMap))
+		http.HandleFunc("/", middleware.ApplyMiddleware(sysconfig.ProxyRequestHandler(sysconfig.ProxyMap), middleware.LoggerMiddleware))
 		if err = http.ListenAndServe(fmt.Sprintf(":%d", sysconfig.SysConfig1.Server.Port), nil); err != nil {
 			errC <-err
 		}
