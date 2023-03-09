@@ -33,15 +33,15 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 
 func modifyResponse() func(response *http.Response) error {
 	return func(resp *http.Response) error {
-		klog.Info("")
-		klog.Info(resp.Request.URL.Host)
+		klog.Info("request url host: ", resp.Request.URL.Host)
 
+		// FIXME: 主要处理重定向的场景
 		r, ok := InitProxyMap[resp.Request.URL.Host]
 		if !ok {
 			return errors.New("not found InitProxy in InitProxyMap")
 		}
 		InitProxy = r
-		klog.Info(resp.StatusCode)
+		klog.Info("resp code: ", resp.StatusCode)
 
 		return nil
 	}
@@ -54,15 +54,14 @@ func modifyRequest(req *http.Request)  {
 
 // ProxyRequestHandler handles the http request using proxy
 func ProxyRequestHandler(proxys map[string]*httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
-	klog.Info("use proxy!!")
+	klog.Info("use proxy gateway !!")
 	return func(w http.ResponseWriter, req *http.Request) {
-
 
 
 		// 这里需要分割url
 		s := strings.Split(req.URL.Path, "/")
 		res1, res2 := handler(s)
-		klog.Info("res1: ", res1, " res2: ", res2)
+		klog.Info("prefix: ", res1, " service url: ", res2)
 
 		// FIXME: 这里会有重定向的问题，重定向的请求不能执行
 		// FIXME: 目前是把没有在map中找到的请求都直接return，长期会有问题
@@ -81,7 +80,7 @@ func ProxyRequestHandler(proxys map[string]*httputil.ReverseProxy) func(http.Res
 
 		}
 		req.URL.Path = res2
-		klog.Info("request: ", req.URL.Host, req.URL.Path)
+		klog.Info("request url: ", req.URL.Host, req.URL.Path)
 		if ok1 && ok2 {
 			res.ServeHTTP(w, req)
 		}
@@ -89,6 +88,7 @@ func ProxyRequestHandler(proxys map[string]*httputil.ReverseProxy) func(http.Res
 	}
 }
 
+// handler 临时方案，处理proxy的url
 func handler(url []string) (string, string) {
 	res1 := "/" + url[1]
 	url = url[2:]

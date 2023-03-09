@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"github.com/myoperator/proxyoperator/pkg/middleware/limit"
+	"k8s.io/klog/v2"
 	"log"
 	"net/http"
 )
@@ -21,3 +23,28 @@ func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
+
+// LimiterMiddleware 限流中间件
+func LimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		ip := req.RemoteAddr
+		klog.Info("ip: ", ip)
+
+		var limiter *limit.Bucket
+
+		if v, ok := limit.IpCache.Data.Load(ip); ok {
+			limiter = v.(*limit.Bucket)
+		} else {
+			limiter = limit.NewBucket(limit.DefaultCap, limit.DefaultRate)
+			limit.IpCache.Data.Store(ip, limiter)
+		}
+
+		// 如果限流器接受，则走到下一个中间件，不然就报错
+		if limiter.IsAccept() {
+			next(w, req)
+		} else {
+			w.Write([]byte("this ip is too many request!!"))
+		}
+	}
+}
+

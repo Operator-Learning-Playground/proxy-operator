@@ -73,7 +73,7 @@ func main() {
 	// 6. 启动网关
 	go func() {
 		klog.Info("proxy start!! ")
-		http.HandleFunc("/", middleware.ApplyMiddleware(sysconfig.ProxyRequestHandler(sysconfig.ProxyMap), middleware.LoggerMiddleware))
+		http.HandleFunc("/", middleware.ApplyMiddleware(sysconfig.ProxyRequestHandler(sysconfig.ProxyMap), middleware.LoggerMiddleware, middleware.LimiterMiddleware))
 		if err = http.ListenAndServe(fmt.Sprintf(":%d", sysconfig.SysConfig1.Server.Port), nil); err != nil {
 			errC <-err
 		}
