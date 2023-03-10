@@ -76,8 +76,9 @@ type Backend struct {
 }
 
 type Server struct {
-	Ip   string `yaml:"ip"`
-	Port int 	`yaml:"port"`
+	Ip     string `yaml:"ip"`
+	Port   int 	  `yaml:"port"`
+	Params string `yaml:"params"`
 }
 
 func AppConfig(proxy *proxyv1alpha1.Proxy) error {
