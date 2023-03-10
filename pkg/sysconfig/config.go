@@ -78,7 +78,7 @@ type Backend struct {
 type Server struct {
 	Ip     string `yaml:"ip"`
 	Port   int 	  `yaml:"port"`
-	Params string `yaml:"params"`
+	Params string `yaml:"params"`  // FIXME: 在crd中还没实现
 }
 
 func AppConfig(proxy *proxyv1alpha1.Proxy) error {
