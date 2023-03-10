@@ -13,4 +13,5 @@ Rules:
       Url: https://www.jtthink.com
 Server:
   Ip: localhost
+  Params: name,user,aaaa
   Port: 10086

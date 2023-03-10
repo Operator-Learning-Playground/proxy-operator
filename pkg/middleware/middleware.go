@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/myoperator/proxyoperator/pkg/middleware/limit"
+	"github.com/myoperator/proxyoperator/pkg/sysconfig"
 	"k8s.io/klog/v2"
 	"log"
 	"net/http"
@@ -24,8 +25,8 @@ func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// LimiterMiddleware 限流中间件
-func LimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
+// IpLimiterMiddleware ip限流中间件
+func IpLimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ip := req.RemoteAddr
 		klog.Info("ip: ", ip)
@@ -47,4 +48,32 @@ func LimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 	}
 }
+
+// ParamLimiterMiddleware query限流中间件
+func ParamLimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+
+		if key, ok := limit.CheckParam(req.URL.Query(), sysconfig.SysConfig1.Server.Params); ok {
+
+			var limiter *limit.Bucket
+
+			if v, ok := limit.IpCache.Data.Load(key); ok {
+				limiter = v.(*limit.Bucket)
+			} else {
+				limiter = limit.NewBucket(1, limit.DefaultRate)
+				limit.IpCache.Data.Store(key, limiter)
+			}
+
+			if limiter.IsAccept() {
+				next(w, req)
+			} else {
+				w.Write([]byte("this query is too many request!!"))
+			}
+		} else {
+			next(w, req)
+		}
+
+	}
+}
+
 
