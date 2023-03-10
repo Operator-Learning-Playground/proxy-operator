@@ -14,6 +14,7 @@ type Bucket struct {
 	lastTime int64
 }
 
+
 const (
 	DefaultCap  = 5
 	DefaultRate = 1
