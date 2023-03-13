@@ -10,7 +10,7 @@ Rules:
 - Path:
     Backend:
       Prefix: /aaaa
-      Url: https://www.jtthink.com
+      Url: http://localhost:8081
 Server:
   Ip: localhost
   Params: name,user,aaaa
