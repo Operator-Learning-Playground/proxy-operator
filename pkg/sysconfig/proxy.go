@@ -48,7 +48,7 @@ func modifyResponse() func(response *http.Response) error {
 
 }
 
-func modifyRequest(req *http.Request)  {
+func modifyRequest(req *http.Request) {
 
 }
 
@@ -56,7 +56,6 @@ func modifyRequest(req *http.Request)  {
 func ProxyRequestHandler(proxys map[string]*httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 	klog.Info("use proxy gateway !!")
 	return func(w http.ResponseWriter, req *http.Request) {
-
 
 		// 这里需要分割url
 		s := strings.Split(req.URL.Path, "/")
@@ -100,5 +99,3 @@ func handler(url []string) (string, string) {
 
 	return res1, res2
 }
-
-

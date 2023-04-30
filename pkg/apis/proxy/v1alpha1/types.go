@@ -31,16 +31,13 @@ type Backend struct {
 
 type Server struct {
 	Ip   string `json:"ip"`
-	Port int 	`json:"port"`
+	Port int    `json:"port"`
 }
-
 
 type ProxySpec struct {
 	Rules  []Rules `json:"rules"`
 	Server Server  `json:"server"`
 }
-
-
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -52,5 +49,3 @@ type ProxyList struct {
 
 	Items []Proxy `json:"items"`
 }
-
-

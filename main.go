@@ -7,6 +7,7 @@ import (
 	"github.com/myoperator/proxyoperator/pkg/k8sconfig"
 	"github.com/myoperator/proxyoperator/pkg/middleware"
 	"github.com/myoperator/proxyoperator/pkg/sysconfig"
+	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/code-generator"
 	"k8s.io/klog/v2"
 	"log"
@@ -27,14 +28,12 @@ import (
 	operator = crd + controller + webhook
 */
 
-
-
 func main() {
 
 	logf.SetLogger(zap.New())
 	// 1. 管理器初始化
 	mgr, err := manager.New(k8sconfig.K8sRestConfig(), manager.Options{
-		Logger:  logf.Log.WithName("proxy-operator"),
+		Logger: logf.Log.WithName("proxy-operator"),
 	})
 	if err != nil {
 		mgr.GetLogger().Error(err, "unable to set up manager")
@@ -66,24 +65,23 @@ func main() {
 	go func() {
 		klog.Info("controller start!! ")
 		if err = mgr.Start(signals.SetupSignalHandler()); err != nil {
-			errC <-err
+			errC <- err
 		}
 	}()
 
 	// 6. 启动网关
 	go func() {
 		klog.Info("proxy start!! ")
+		// 中间件
 		http.HandleFunc("/", middleware.ApplyMiddleware(sysconfig.ProxyRequestHandler(sysconfig.ProxyMap), middleware.LoggerMiddleware,
 			middleware.IpLimiterMiddleware, middleware.ParamLimiterMiddleware))
 		if err = http.ListenAndServe(fmt.Sprintf(":%d", sysconfig.SysConfig1.Server.Port), nil); err != nil {
-			errC <-err
+			errC <- err
 		}
 	}()
 
-	// 这里会阻塞，两种常驻进程可以使用这个方法
+	// 会阻塞，两种常驻进程可以使用这个方法
 	getError := <-errC
 	log.Println(getError.Error())
 
 }
-
-
