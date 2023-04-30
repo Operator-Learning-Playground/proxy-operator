@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-
-
 var SysConfig1 = new(SysConfig)
 
 func InitConfig() error {
@@ -38,8 +36,8 @@ func InitConfig() error {
 }
 
 var (
-	ProxyMap = make(map[string]*httputil.ReverseProxy)
-	HostMap  = make(map[string]string)
+	ProxyMap     = make(map[string]*httputil.ReverseProxy)
+	HostMap      = make(map[string]string)
 	InitProxyMap = make(map[string]*httputil.ReverseProxy)
 )
 
@@ -77,16 +75,16 @@ type Backend struct {
 
 type Server struct {
 	Ip     string `yaml:"ip"`
-	Port   int 	  `yaml:"port"`
-	Params string `yaml:"params"`  // FIXME: 在crd中还没实现
+	Port   int    `yaml:"port"`
+	Params string `yaml:"params"` // FIXME: 在crd中还没实现
 }
 
 func AppConfig(proxy *proxyv1alpha1.Proxy) error {
 
 	// 1. 需要先把SysConfig1中的都删除
-    if len(SysConfig1.Rules) != len(proxy.Spec.Rules) {
-    	// 清零后需要先更新app.yaml文件
-    	SysConfig1.Rules = make([]Rules, len(proxy.Spec.Rules))
+	if len(SysConfig1.Rules) != len(proxy.Spec.Rules) {
+		// 清零后需要先更新app.yaml文件
+		SysConfig1.Rules = make([]Rules, len(proxy.Spec.Rules))
 		if err := saveConfigToFile(); err != nil {
 			return err
 		}
