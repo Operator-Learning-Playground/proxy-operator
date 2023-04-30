@@ -28,7 +28,12 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	proxy := &proxyv1alpha1.Proxy{}
 	err := r.Get(ctx, req.NamespacedName, proxy)
 	if err != nil {
-		return reconcile.Result{}, err
+		if client.IgnoreNotFound(err) != nil {
+			klog.Error("get proxy error: ", err)
+			return reconcile.Result{}, err
+		}
+		// 如果未找到的错误，不再进入调协
+		return reconcile.Result{}, nil
 	}
 	klog.Info(proxy)
 
