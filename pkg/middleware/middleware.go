@@ -20,7 +20,8 @@ func ApplyMiddleware(handler http.HandlerFunc, middlewares ...Middleware) http.H
 // LoggerMiddleware 日志中间件
 func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s", r.Method, r.URL.Path)
+		klog.Infof("Method: [%v], URL.Path: [%s]", r.Method, r.URL.Path)
+		klog.Infof("Ip: [%v]", r.RemoteAddr)
 		next(w, r)
 	}
 }
@@ -29,7 +30,6 @@ func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func IpLimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ip := req.RemoteAddr
-		klog.Info("ip: ", ip)
 
 		var limiter *limit.Bucket
 
@@ -73,5 +73,18 @@ func ParamLimiterMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			next(w, req)
 		}
 
+	}
+}
+
+func PanicMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("Recovered from panic:", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			} else {
+				next(w, req)
+			}
+		}()
 	}
 }
