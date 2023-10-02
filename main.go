@@ -7,7 +7,6 @@ import (
 	"github.com/myoperator/proxyoperator/pkg/k8sconfig"
 	"github.com/myoperator/proxyoperator/pkg/middleware"
 	"github.com/myoperator/proxyoperator/pkg/sysconfig"
-	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/code-generator"
 	"k8s.io/klog/v2"
 	"log"
@@ -74,7 +73,7 @@ func main() {
 		klog.Info("proxy start!! ")
 		// 中间件
 		http.HandleFunc("/", middleware.ApplyMiddleware(sysconfig.ProxyRequestHandler(sysconfig.ProxyMap), middleware.LoggerMiddleware,
-			middleware.IpLimiterMiddleware, middleware.ParamLimiterMiddleware))
+			middleware.IpLimiterMiddleware, middleware.ParamLimiterMiddleware, middleware.PanicMiddleware))
 		if err = http.ListenAndServe(fmt.Sprintf(":%d", sysconfig.SysConfig1.Server.Port), nil); err != nil {
 			errC <- err
 		}

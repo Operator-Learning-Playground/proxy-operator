@@ -9,11 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-const (
-	ProxyControllerAnnotation = "myproxy"
-	ingressAnnotationKey      = "kubernetes.io/ingress.class"
-)
-
 type ProxyController struct {
 	client.Client
 }
@@ -37,9 +32,10 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	}
 	klog.Info(proxy)
 
+	// 修改 proxy 配置
 	err = sysconfig.AppConfig(proxy)
 	if err != nil {
-		return reconcile.Result{}, nil
+		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil

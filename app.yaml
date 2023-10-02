@@ -1,16 +1,12 @@
 Rules:
 - Path:
     Backend:
-      Prefix: /test1
+      Prefix: /service1
       Url: http://localhost:8899
 - Path:
     Backend:
-      Prefix: /tttt
-      Url: https://github.com
-- Path:
-    Backend:
-      Prefix: /aaaa
-      Url: http://localhost:8081
+      Prefix: /service2
+      Url: http://localhost:8800
 Server:
   Ip: localhost
   Params: name,user,aaaa

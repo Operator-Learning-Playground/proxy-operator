@@ -29,7 +29,7 @@ func InitConfig() error {
 	}
 
 	// 解析配置文件
-	ParseRule()
+	parseRule()
 
 	return nil
 
@@ -41,18 +41,18 @@ var (
 	InitProxyMap = make(map[string]*httputil.ReverseProxy)
 )
 
-func ParseRule() {
+// parseRule 解析 sysConfig 文件
+func parseRule() {
 
 	for _, rule := range SysConfig1.Rules {
 		splitUrl := strings.Split(rule.Path.Backend.Url, "://")
-		fmt.Printf("%s://%s\n", splitUrl[0], splitUrl[1])
+
 		res, _ := NewProxy(fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1]))
 		ProxyMap[rule.Path.Backend.Prefix] = res
 		HostMap[rule.Path.Backend.Prefix] = fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1])
 		InitProxyMap[fmt.Sprintf("%s", splitUrl[1])] = res
-		klog.Info(rule.Path.Backend.Prefix, " ", HostMap[rule.Path.Backend.Prefix])
+		klog.Info(HostMap[rule.Path.Backend.Prefix], "", rule.Path.Backend.Prefix)
 	}
-
 }
 
 type SysConfig struct {
@@ -94,7 +94,6 @@ func AppConfig(proxy *proxyv1alpha1.Proxy) error {
 	for i, proxyPath := range proxy.Spec.Rules {
 		SysConfig1.Rules[i].Path.Backend.Url = proxyPath.Path.Backend.Url
 		SysConfig1.Rules[i].Path.Backend.Prefix = proxyPath.Path.Backend.Prefix
-
 	}
 	// 保存配置文件
 	if err := saveConfigToFile(); err != nil {

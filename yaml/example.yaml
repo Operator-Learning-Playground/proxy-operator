@@ -3,23 +3,15 @@ kind: Proxy
 metadata:
   name: myproxy
 spec:
-  server:
+  server:                               # 反向代理 server ip:port
     ip: localhost
     port: 10086
-  rules:
+  rules:                                # 后端路由列表
+    - path:
+        backend:                        # 后端
+          prefix: /service1             # 自定义前缀
+          url: http://localhost:8899    # 真正要访问的服务
     - path:
         backend:
-          prefix: /test1
-          url: http://localhost:8899 # 真正要访问的服务
-    - path:
-        backend:
-          prefix: /aaaa
-          url: http://172.20.10.4:12308 # 真正要访问的服务
-    - path:
-        backend:
-          prefix: /bbbb
-          url: https://github.com # 真正要访问的服务
-    - path:
-        backend:
-          prefix: /test2
-          url: https://localhost:8081 # 真正要访问的服务
+          prefix: /service2
+          url: http://localhost:8800
