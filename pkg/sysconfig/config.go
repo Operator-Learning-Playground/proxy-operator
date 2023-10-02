@@ -21,8 +21,6 @@ func InitConfig() error {
 		return err
 	}
 
-	//SysConfig = NewSysConfig()
-
 	err = yaml.Unmarshal(config, SysConfig1)
 	if err != nil {
 		return err
@@ -43,10 +41,8 @@ var (
 
 // parseRule 解析 sysConfig 文件
 func parseRule() {
-
 	for _, rule := range SysConfig1.Rules {
 		splitUrl := strings.Split(rule.Path.Backend.Url, "://")
-
 		res, _ := NewProxy(fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1]))
 		ProxyMap[rule.Path.Backend.Prefix] = res
 		HostMap[rule.Path.Backend.Prefix] = fmt.Sprintf("%s://%s", splitUrl[0], splitUrl[1])
@@ -77,6 +73,18 @@ type Server struct {
 	Ip     string `yaml:"ip"`
 	Port   int    `yaml:"port"`
 	Params string `yaml:"params"` // FIXME: 在crd中还没实现
+}
+
+func CleanConfig() error {
+
+	// 1. 把SysConfig1中的都删除
+	// 清零后需要先更新app.yaml文件
+	SysConfig1.Rules = make([]Rules, 0)
+	if err := saveConfigToFile(); err != nil {
+		return err
+	}
+
+	return ReloadConfig()
 }
 
 func AppConfig(proxy *proxyv1alpha1.Proxy) error {

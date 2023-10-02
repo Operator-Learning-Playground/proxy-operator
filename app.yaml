@@ -1,12 +1,4 @@
-Rules:
-- Path:
-    Backend:
-      Prefix: /service1
-      Url: http://localhost:8899
-- Path:
-    Backend:
-      Prefix: /service2
-      Url: http://localhost:8800
+Rules: []
 Server:
   Ip: localhost
   Params: name,user,aaaa

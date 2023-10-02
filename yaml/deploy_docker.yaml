@@ -17,22 +17,15 @@ spec:
       serviceAccountName: myproxy-sa # 配置service account
       containers:
         - name: myproxy
-          image: alpine:3.12
+          image: myproxyoperator:v1
           imagePullPolicy: IfNotPresent
           env:
             - name: "Release"
               value: "1"
           workingDir: "/app"
           command: ["./myproxyoperator"]
-          volumeMounts:
-            - name: app
-              mountPath: /app
           ports:
             - containerPort: 80
-      volumes:
-        - name: app
-          hostPath:
-            path: /root/k8s-operator-proxy
 ---
 apiVersion: v1
 kind: Service
@@ -43,7 +36,6 @@ spec:
   type: NodePort
   ports:
     - port: 10086
-      nodePort: 31188
+      nodePort: 31186
   selector:
     app: myproxy-controller
----

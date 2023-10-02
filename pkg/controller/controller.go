@@ -6,6 +6,7 @@ import (
 	"github.com/myoperator/proxyoperator/pkg/sysconfig"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -20,6 +21,7 @@ func NewProxyController() *ProxyController {
 // Reconcile 调协loop
 func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
+	// 1. 获取资源对象
 	proxy := &proxyv1alpha1.Proxy{}
 	err := r.Get(ctx, req.NamespacedName, proxy)
 	if err != nil {
@@ -32,14 +34,50 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	}
 	klog.Info(proxy)
 
-	// 修改 proxy 配置
-	err = sysconfig.AppConfig(proxy)
-	if err != nil {
-		return reconcile.Result{}, err
+	// 2. 是否是删除流程
+	if !proxy.DeletionTimestamp.IsZero() {
+		klog.Info("clean proxy config")
+		err := sysconfig.CleanConfig()
+		if err != nil {
+			klog.Error("clean proxy config error: ", err)
+			return reconcile.Result{}, err
+		}
+
+		// 清理完成后，从 Finalizers 中移除 Finalizer
+		controllerutil.RemoveFinalizer(proxy, finalizerName)
+		err = r.Update(ctx, proxy)
+		if err != nil {
+			klog.Error("clean proxy finalizer err: ", err)
+			return reconcile.Result{}, err
+		}
+
+		return reconcile.Result{}, nil
 	}
 
+	// 3. 检查是否已添加 Finalizer
+	if !containsFinalizer(proxy) {
+		// 添加 Finalizer
+		controllerutil.AddFinalizer(proxy, finalizerName)
+		err = r.Update(ctx, proxy)
+		if err != nil {
+			klog.Error("update proxy finalizer err: ", err)
+			return reconcile.Result{}, err
+		}
+	}
+
+	// 4. 修改 proxy 配置
+	err = sysconfig.AppConfig(proxy)
+	if err != nil {
+		klog.Error("apply proxy config error: ", err)
+		return reconcile.Result{}, err
+	}
+	klog.Info("successful reconcile")
 	return reconcile.Result{}, nil
 }
+
+const (
+	finalizerName = "api.practice.com/finalizer"
+)
 
 // InjectClient 使用controller-runtime 需要注入的client
 func (r *ProxyController) InjectClient(c client.Client) error {
@@ -47,4 +85,12 @@ func (r *ProxyController) InjectClient(c client.Client) error {
 	return nil
 }
 
-// TODO: 删除逻辑并未处理
+func containsFinalizer(proxy *proxyv1alpha1.Proxy) bool {
+	for _, finalizer := range proxy.Finalizers {
+		if finalizer == finalizerName {
+			return true
+		}
+	}
+	return false
+}
+
