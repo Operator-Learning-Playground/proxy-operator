@@ -34,6 +34,41 @@ spec:
 ```
 
 ### 项目部署
+1. 打镜像。
+```bash
+# 项目根目录执行
+[root@VM-0-16-centos proxyoperator]# pwd
+/root/proxyoperator
+# 可以直接使用 docker 镜像部署
+[root@VM-0-16-centos proxyoperator]# docker build -t myproxyoperator:v1 .
+Sending build context to Docker daemon  49.16MB
+Step 1/19 : FROM golang:1.18.7-alpine3.15 as builder
+ ---> 33c97f935029
+Step 2/19 : WORKDIR /app
+ ---> Using cache ...
+```   
+2. apply crd 资源
+```bash
+[root@VM-0-16-centos yaml]# ls
+deploy_docker.yaml  deploy.yaml  example.yaml  proxy.yaml  rbac.yaml
+[root@VM-0-16-centos yaml]# kubectl apply -f proxy.yaml
+customresourcedefinition.apiextensions.k8s.io/proxys.api.practice.com unchanged
+```   
+3. 启动 controller 服务(需要先执行 rbac.yaml，否则服务会报错)
+```bash
+[root@VM-0-16-centos yaml]# kubectl apply -f rbac.yaml
+serviceaccount/myproxy-sa unchanged
+clusterrole.rbac.authorization.k8s.io/myproxy-clusterrole unchanged
+clusterrolebinding.rbac.authorization.k8s.io/myproxy-ClusterRoleBinding unchanged
+[root@VM-0-16-centos yaml]# kubectl apply -f deploy_docker.yaml
+deployment.apps/myproxy-controller unchanged
+service/myproxy-svc unchanged
+```   
+4. 查看 operator 服务
 
+```bash
+[root@VM-0-16-centos yaml]# kubectl get pods | grep proxy
+myproxy-controller-789c6f7c66-jfdmj                1/1     Running            0          13h
+```
 
 ### RoadMap

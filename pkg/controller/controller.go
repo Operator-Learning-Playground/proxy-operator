@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 type ProxyController struct {
@@ -27,7 +28,7 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			klog.Error("get proxy error: ", err)
-			return reconcile.Result{}, err
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 		}
 		// 如果未找到的错误，不再进入调协
 		return reconcile.Result{}, nil
@@ -40,7 +41,7 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 		err := sysconfig.CleanConfig()
 		if err != nil {
 			klog.Error("clean proxy config error: ", err)
-			return reconcile.Result{}, err
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 		}
 
 		// 清理完成后，从 Finalizers 中移除 Finalizer
@@ -48,8 +49,10 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 		err = r.Update(ctx, proxy)
 		if err != nil {
 			klog.Error("clean proxy finalizer err: ", err)
-			return reconcile.Result{}, err
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 		}
+
+		klog.Info("successful delete reconcile")
 
 		return reconcile.Result{}, nil
 	}
@@ -61,7 +64,7 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 		err = r.Update(ctx, proxy)
 		if err != nil {
 			klog.Error("update proxy finalizer err: ", err)
-			return reconcile.Result{}, err
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 		}
 	}
 
@@ -69,7 +72,7 @@ func (r *ProxyController) Reconcile(ctx context.Context, req reconcile.Request) 
 	err = sysconfig.AppConfig(proxy)
 	if err != nil {
 		klog.Error("apply proxy config error: ", err)
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 	}
 	klog.Info("successful reconcile")
 	return reconcile.Result{}, nil
